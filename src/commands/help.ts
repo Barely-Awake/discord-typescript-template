@@ -5,10 +5,13 @@ import config from '../utils/readConfig.js';
 
 export default async function (message: Discord.Message, args: string[]) {
   await message.delete();
-  let helpMessage = '```css\n';
-  helpMessage += `${config.botName}\n[] - Mandatory arguments\n<> - Optional arguments\n| - OR\n\n`;
+  const helpEmbed = new Discord.MessageEmbed;
+  helpEmbed
+    .setTitle(`${config.botName || message?.client?.user?.username || 'Bot'} Help`)
+    .setDescription(`<> = Required Argument\n[] = Optional Argument\n${config.prefix} = Prefix`)
+    .setColor('#00ff22');
 
-  let i = 1;
+  let commandsArray = [];
 
   async function fileLoop(pathAdditions: string = '') {
     const files = readdirSync('./dist/commands' + pathAdditions);
@@ -33,18 +36,29 @@ export default async function (message: Discord.Message, args: string[]) {
       if (!fileDescription)
         continue;
 
-      helpMessage += `[${i}] ` + `${config.prefix}${fileDescription.usage}\n\t  ${fileDescription.description}\n`;
-      i++;
+      let commandInfo = {
+        name: `${config.prefix}${fileDescription.name} ${fileDescription.usage}`,
+        value: `${fileDescription.description}`,
+        inline: false,
+      };
+      if (fileDescription.aliases)
+        commandInfo.value += `\nAliases: ${fileDescription.aliases.join(', ')}`;
+
+      commandsArray.push(commandInfo);
     }
   }
 
   await fileLoop();
 
-  return message.channel.send(helpMessage + '\n```');
+  return message.channel.send({
+    embeds: [
+      helpEmbed,
+    ]
+  });
 }
 
 export const description = {
   name: 'help',
   description: 'Shows help message.',
-  usage: 'help',
+  usage: '',
 };

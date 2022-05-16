@@ -7,7 +7,7 @@ export default async function (message: Discord.Message, args: string[]) {
 export const description: DescriptionTypes = {
   name: '_example',
   description: 'Example command',
-  usage: '_example',
+  usage: '<Required Argument> [Optional Argument]',
 };
 
 export interface DescriptionTypes {
