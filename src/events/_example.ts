@@ -1,13 +1,7 @@
-import client from "index.js";
-import * as Discord from "discord.js";
-
-async function execute() {
+export default async function () {
   return;
 }
 
-export default {
-  settings: {
-    once: true,
-  },
-  execute: execute,
+export const settings = {
+  once: true,
 };

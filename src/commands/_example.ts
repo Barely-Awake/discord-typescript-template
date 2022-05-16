@@ -1,10 +1,18 @@
-import client from "../index.js";
-import * as Discord from "discord.js";
+import * as Discord from 'discord.js';
 
-async function execute(message: Discord.Message, args: string[]) {
+export default async function (message: Discord.Message, args: string[]) {
   return;
 }
 
-export default {
-  execute: execute
+export const description: DescriptionTypes = {
+  name: '_example',
+  description: 'Example command',
+  usage: '_example',
 };
+
+export interface DescriptionTypes {
+  name: string;
+  aliases?: string[];
+  description: string;
+  usage: string;
+}
