@@ -11,7 +11,10 @@ export default async function (message: Discord.Message, args: string[]) {
     .setDescription(`<> = Required Argument\n[] = Optional Argument\n${config.prefix} = Prefix`)
     .setColor('#00ff22');
 
-  let commandsArray = [];
+  let commandFields: { [index: string]: any[] } = {
+    0: [],
+  };
+  let totalCommandsAdded = 0;
 
   async function fileLoop(pathAdditions: string = '') {
     const files = readdirSync('./dist/commands' + pathAdditions);
@@ -44,16 +47,29 @@ export default async function (message: Discord.Message, args: string[]) {
       if (fileDescription.aliases)
         commandInfo.value += `\nAliases: ${fileDescription.aliases.join(', ')}`;
 
-      commandsArray.push(commandInfo);
+      totalCommandsAdded++;
+
+      if (commandFields[Math.floor(totalCommandsAdded / 25)] === undefined)
+        commandFields[Math.floor(totalCommandsAdded / 25)] = [];
+
+      commandFields[Math.floor(totalCommandsAdded / 25)].push(commandInfo);
     }
+  }
+
+  let embedsArray = [];
+
+  if (totalCommandsAdded <= 25) {
+    embedsArray.push(helpEmbed);
+    for (const field of commandFields[0])
+      helpEmbed.addField(field.name, field.value, field.inline);
+  } else {
+    return message.channel.send(`Too many commands to list. This will be fixed in a later update to the template.`);
   }
 
   await fileLoop();
 
   return message.channel.send({
-    embeds: [
-      helpEmbed,
-    ]
+    embeds: embedsArray,
   });
 }
 
