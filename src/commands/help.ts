@@ -14,7 +14,7 @@ export default async function (message: Discord.Message, args: string[]) {
   let commandFields: { [index: string]: any[] } = {
     0: [],
   };
-  let totalCommandsAdded = 0;
+  let totalCommands = 0;
 
   async function fileLoop(pathAdditions: string = '') {
     const files = readdirSync('./dist/commands' + pathAdditions);
@@ -47,12 +47,12 @@ export default async function (message: Discord.Message, args: string[]) {
       if (fileDescription.aliases)
         commandInfo.value += `\nAliases: ${fileDescription.aliases.join(', ')}`;
 
-      totalCommandsAdded++;
+      totalCommands++;
 
-      if (commandFields[Math.floor(totalCommandsAdded / 25)] === undefined)
-        commandFields[Math.floor(totalCommandsAdded / 25)] = [];
+      if (commandFields[Math.floor(totalCommands / 25)] === undefined)
+        commandFields[Math.floor(totalCommands / 25)] = [];
 
-      commandFields[Math.floor(totalCommandsAdded / 25)].push(commandInfo);
+      commandFields[Math.floor(totalCommands / 25)].push(commandInfo);
     }
   }
 
@@ -60,12 +60,18 @@ export default async function (message: Discord.Message, args: string[]) {
 
   let embedsArray = [];
 
-  if (totalCommandsAdded <= 25) {
+  if (totalCommands <= 25) {
     embedsArray.push(helpEmbed);
     for (const field of commandFields[0])
       helpEmbed.addField(field.name, field.value, field.inline);
   } else {
-    return message.channel.send(`Too many commands to list. This will be fixed in a later update to the template.`);
+    for (let i = 0; i <= Math.floor(totalCommands / 3); i++) {
+      let copy = helpEmbed;
+      copy.title += ` (Page ${i})`;
+      for (const field of commandFields[i])
+        copy.addField(field.name, field.value, field.inline);
+      embedsArray.push(copy);
+    }
   }
 
   return message.channel.send({
