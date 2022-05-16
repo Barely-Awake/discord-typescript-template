@@ -1,6 +1,6 @@
-import clientCollections from '../index.js';
+import clientCollections from '../../index.js';
 import * as Discord from 'discord.js';
-import config from '../utils/readConfig.js';
+import config from '../../utils/readConfig.js';
 
 export default async function (message: Discord.Message) {
   commandHandler(message);
