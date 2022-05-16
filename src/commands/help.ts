@@ -56,6 +56,8 @@ export default async function (message: Discord.Message, args: string[]) {
     }
   }
 
+  await fileLoop();
+
   let embedsArray = [];
 
   if (totalCommandsAdded <= 25) {
@@ -65,8 +67,6 @@ export default async function (message: Discord.Message, args: string[]) {
   } else {
     return message.channel.send(`Too many commands to list. This will be fixed in a later update to the template.`);
   }
-
-  await fileLoop();
 
   return message.channel.send({
     embeds: embedsArray,
