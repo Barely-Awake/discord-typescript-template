@@ -1,86 +1,110 @@
-import * as Discord from 'discord.js';
-import { readdirSync } from 'fs';
-import { DescriptionTypes } from './_example.js';
+import {
+  ActionRowBuilder,
+  EmbedBuilder,
+  InteractionCollector,
+  Message,
+  SelectMenuBuilder,
+  SelectMenuComponentOptionData,
+} from 'discord.js';
+import { CommandCategory, CommandCollection } from '../../types/discord.js';
+import { categoryInfo } from '../../utils/categoryInfo.js';
 import config from '../../utils/readConfig.js';
 
-export default async function (message: Discord.Message, args: string[]) {
-  await message.delete();
-  const helpEmbed = new Discord.MessageEmbed;
-  helpEmbed
-    .setTitle(`${config.botName || message?.client?.user?.username || 'Bot'} Help`)
-    .setDescription(`<> = Required Argument\n[] = Optional Argument\n${config.prefix} = Prefix`)
-    .setColor('#00ff22');
+export default class Help {
+  public name: string;
+  public category: CommandCategory;
+  public aliases: string[] | null;
+  public description: string;
+  public usage: string;
 
-  let commandFields: { [index: string]: any[] } = {
-    0: [],
-  };
-  let totalCommands = 0;
+  constructor(
+    name = 'help',
+    category: CommandCategory = 'info',
+    aliases: string[] | null = ['h', 'commands'],
+    description = 'Shows help message.',
+    usage = '',
+  ) {
+    this.name = name;
+    this.category = category;
+    this.aliases = aliases;
+    this.description = description;
+    this.usage = usage;
+  }
 
-  async function fileLoop(pathAdditions: string = '') {
-    const files = readdirSync('./dist/bot/commands' + pathAdditions);
+  async command(message: Message, _: string[]) {
+    const baseEmbed = new EmbedBuilder()
+      .setTitle(`${config.botName} Help`)
+      .setDescription(`<> - Required Argument\n[] - Option Argument\n${config.prefix} - Bot Prefix`);
 
-    for (const file of files) {
-      if (file.startsWith('_') || (file.includes('.') && !file.endsWith('.js')))
-        continue;
+    const selectMenuOptions: SelectMenuComponentOptionData[] = [];
+    for (const key of Object.keys(categoryInfo)) {
+      baseEmbed.addFields([{
+        name: categoryInfo[key].label,
+        value: categoryInfo[key].description || '',
+      }]);
+      const categoryDeepCopy = JSON.parse(JSON.stringify(categoryInfo[key]));
+      delete categoryDeepCopy.embed;
+      selectMenuOptions.push(categoryDeepCopy);
+    }
 
-      if (!file.endsWith('.js')) {
-        await fileLoop(pathAdditions + '/' + file);
-        continue;
+    const actionRow = new ActionRowBuilder<SelectMenuBuilder>()
+      .addComponents(new SelectMenuBuilder()
+        .setCustomId('categorySelector')
+        .setPlaceholder('Categories')
+        .addOptions(selectMenuOptions));
+
+    const sentMessage = await message.channel.send({
+      embeds: [baseEmbed],
+      components: [actionRow],
+    });
+
+    const interactionCollector = new InteractionCollector(message.client, {
+      message: sentMessage,
+      time: 120 * 1000,
+    });
+
+    interactionCollector.on('collect', (interaction) => {
+      if (!interaction.isSelectMenu())
+        return;
+
+      if (interaction.user.id !== message.author.id) {
+        interaction.reply({
+          content: 'You can\'t do that to this message!',
+        });
+        return;
       }
+      interaction.update({
+        embeds: [categoryInfo[interaction.values[0]].embed],
+        components: [actionRow],
+      });
+    });
 
-      let importedFile;
-      if (pathAdditions === '')
-        importedFile = await import('./' + file);
-      else
-        importedFile = await import('.' + pathAdditions + '/' + file);
-
-      let fileDescription: DescriptionTypes = importedFile.description;
-
-      if (!fileDescription)
-        continue;
-
-      let commandInfo = {
-        name: `${config.prefix}${fileDescription.name} ${fileDescription.usage}`,
-        value: `${fileDescription.description}`,
-        inline: false,
-      };
-      if (fileDescription.aliases)
-        commandInfo.value += `\nAliases: ${fileDescription.aliases.join(', ')}`;
-
-      totalCommands++;
-
-      if (commandFields[Math.floor(totalCommands / 25)] === undefined)
-        commandFields[Math.floor(totalCommands / 25)] = [];
-
-      commandFields[Math.floor(totalCommands / 25)].push(commandInfo);
-    }
+    interactionCollector.on('end', () => {
+      sentMessage.edit({
+        embeds: sentMessage.embeds,
+        components: [],
+      });
+    });
   }
-
-  await fileLoop();
-
-  let embedsArray = [];
-
-  if (totalCommands <= 25) {
-    embedsArray.push(helpEmbed);
-    for (const field of commandFields[0])
-      helpEmbed.addField(field.name, field.value, field.inline);
-  } else {
-    for (let i = 0; i <= Math.floor(totalCommands / 3); i++) {
-      let copy = helpEmbed;
-      copy.title += ` (Page ${i})`;
-      for (const field of commandFields[i])
-        copy.addField(field.name, field.value, field.inline);
-      embedsArray.push(copy);
-    }
-  }
-
-  return message.channel.send({
-    embeds: embedsArray,
-  });
 }
 
-export const description = {
-  name: 'help',
-  description: 'Shows help message.',
-  usage: '',
-};
+export function makeHelpEmbeds(commands: CommandCollection) {
+  for (const key of Object.keys(categoryInfo)) {
+    categoryInfo[key].embed = new EmbedBuilder()
+      .setTitle(`${config.botName} Help`)
+      .setDescription(`<> - Required Argument\n[] - Option Argument`);
+
+    commands.forEach((commandClass, commandName) => {
+      if (categoryInfo[key].value !== commandClass.category)
+        return;
+
+      if (commandName !== commandClass.name)
+        return;
+
+      categoryInfo[key].embed.addFields([{
+        name: `${commandClass.name} ${commandClass.usage}`,
+        value: commandClass.description,
+      }]);
+    });
+  }
+}

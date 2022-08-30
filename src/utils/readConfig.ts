@@ -1,14 +1,32 @@
-import { readFileSync } from 'fs';
+import 'dotenv/config';
 
 export function readConfig(): Config {
-  const configFile = readFileSync('config.json');
-  return JSON.parse(configFile.toString());
+  return <Config>{
+    token: process.env['TOKEN'],
+
+    betaToken: process.env['BETA_TOKEN'],
+    betaMode: process.env['BETA_MODE'] === 'true',
+
+    prefix: process.env['PREFIX'],
+    botName: process.env['BOT_NAME'],
+    supportServerId: process.env['SUPPORT_SERVER_ID'],
+  };
 }
 
 interface Config {
   token: string;
+
+  betaToken: string;
+  betaMode: boolean;
+
   prefix: string;
   botName: string;
+  supportServerId: string;
+
+  hypixelApiKey: string;
+  antiSniperApiKey: string;
+
+  mongoUrl: string;
 }
 
 const config = readConfig();

@@ -1,19 +1,46 @@
-import * as Discord from 'discord.js';
+import { ActivityType, Client, Collection, GatewayIntentBits, IntentsBitField } from 'discord.js';
+import { makeHelpEmbeds } from './bot/commands/help.js';
+import { commandAdder, eventHandler, taskAdder } from './bot/startUp.js';
 import config from './utils/readConfig.js';
-import commandAdder from './bot/commandAdder.js';
-import eventHandler from './bot/eventHandler.js';
 
-const intents = new Discord.Intents();
-intents.add(Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MESSAGES);
+const intents = new IntentsBitField().add([
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.GuildPresences,
+  GatewayIntentBits.GuildMembers,
+  GatewayIntentBits.GuildMembers,
+  GatewayIntentBits.GuildEmojisAndStickers,
+  GatewayIntentBits.GuildEmojisAndStickers,
+  GatewayIntentBits.DirectMessages,
+  GatewayIntentBits.DirectMessageReactions,
+  GatewayIntentBits.GuildMessageReactions,
+  GatewayIntentBits.MessageContent,
+]);
 
-const client = new Discord.Client({intents: intents});
-const clientCollections = {
-  commands: new Discord.Collection(),
+const client = new Client({
+  intents: intents,
+  presence: {
+    status: 'idle',
+    activities: [
+      {
+        name: `@${config.botName} help`,
+        type: ActivityType.Watching,
+      },
+    ],
+  },
+  failIfNotExists: false,
+  allowedMentions: {
+    repliedUser: false,
+  },
+});
+client.commands = new Collection();
+client.cache = {
+  prefixes: {},
 };
 
-export { clientCollections as default };
-
-commandAdder(clientCollections.commands);
+commandAdder(client.commands)
+  .then(() => makeHelpEmbeds(client.commands));
 eventHandler(client);
+taskAdder(client);
 
-client.login(config.token);
+client.login(config.betaMode ? config.betaToken : config.token);
