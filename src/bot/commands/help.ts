@@ -6,8 +6,8 @@ import {
   SelectMenuBuilder,
   SelectMenuComponentOptionData,
 } from 'discord.js';
-import { CommandCategory, CommandCollection } from '../../types/discord.js';
-import { categoryInfo } from '../../utils/categoryInfo.js';
+import { CommandCollection } from '../../types/discord.js';
+import { categoryInfo, CommandCategory } from '../helpCategories.js';
 import config from '../../utils/readConfig.js';
 
 export default class Help {

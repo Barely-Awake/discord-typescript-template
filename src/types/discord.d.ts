@@ -19,7 +19,6 @@ export interface CommandClass {
 
 export type CommandFunction = (message: Message, args: string[]) => unknown;
 export type CommandCollection = Collection<string, CommandClass>;
-export type CommandCategory = 'config' | 'info' | 'moderation' | 'minecraft' | 'externalApis' | 'misc';
 
 interface Cache {
 }
