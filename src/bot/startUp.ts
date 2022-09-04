@@ -51,16 +51,3 @@ export async function eventHandler(client: Client, pathAdditions = '') {
       client.on(eventName, (...args: string[]) => event.default(...args));
   }
 }
-
-export async function taskAdder(client: Client) {
-  const taskFiles = await readdir('./dist/bot/tasks');
-  for (const file of taskFiles) {
-    if (file.startsWith('_') || !file.endsWith('.js'))
-      continue;
-
-    const task = await import(`./tasks/${file}`);
-    const taskInstance = new task.default();
-    console.log(`Loaded task: ${taskInstance.name}`);
-    setInterval(() => taskInstance.task(client), taskInstance.interval);
-  }
-}
