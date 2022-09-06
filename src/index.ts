@@ -1,6 +1,6 @@
 import { ActivityType, Client, Collection, GatewayIntentBits, IntentsBitField } from 'discord.js';
 import { makeHelpEmbeds } from './bot/commands/help.js';
-import { commandAdder, eventHandler, taskAdder } from './bot/startUp.js';
+import { commandAdder, eventHandler } from './bot/startUp.js';
 import config from './utils/readConfig.js';
 
 const intents = new IntentsBitField().add([
@@ -41,6 +41,5 @@ client.cache = {
 commandAdder(client.commands)
   .then(() => makeHelpEmbeds(client.commands));
 eventHandler(client);
-taskAdder(client);
 
-client.login(config.betaMode ? config.betaToken : config.token);
+client.login(config.token);

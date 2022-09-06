@@ -4,9 +4,6 @@ export function readConfig(): Config {
   return <Config>{
     token: process.env['TOKEN'],
 
-    betaToken: process.env['BETA_TOKEN'],
-    betaMode: process.env['BETA_MODE'] === 'true',
-
     prefix: process.env['PREFIX'],
     botName: process.env['BOT_NAME'],
     supportServerId: process.env['SUPPORT_SERVER_ID'],
