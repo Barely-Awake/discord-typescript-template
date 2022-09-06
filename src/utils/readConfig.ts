@@ -13,17 +13,9 @@ export function readConfig(): Config {
 interface Config {
   token: string;
 
-  betaToken: string;
-  betaMode: boolean;
-
   prefix: string;
   botName: string;
   supportServerId: string;
-
-  hypixelApiKey: string;
-  antiSniperApiKey: string;
-
-  mongoUrl: string;
 }
 
 const config = readConfig();
