@@ -6,7 +6,6 @@ export function readConfig(): Config {
 
     prefix: process.env['PREFIX'],
     botName: process.env['BOT_NAME'],
-    supportServerId: process.env['SUPPORT_SERVER_ID'],
   };
 }
 
@@ -15,7 +14,6 @@ interface Config {
 
   prefix: string;
   botName: string;
-  supportServerId: string;
 }
 
 const config = readConfig();
