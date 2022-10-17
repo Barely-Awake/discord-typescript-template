@@ -15,6 +15,7 @@ async function commandHandler(message: Message) {
     messageContent = message.content.slice(`${(message?.client?.user || config.prefix).toString()} `.length);
   else if (message.content.startsWith((message?.client?.user || config.prefix).toString()))
     messageContent = message.content.slice((message?.client?.user || config.prefix).toString().length);
+  else return;
 
   const messageArray = messageContent.split(' ');
 
